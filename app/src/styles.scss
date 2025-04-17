@@ -1,0 +1,102 @@
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use "@angular/material" as mat;
+
+@import "./tailwind.css"; // This is importing our local Tailwind CSS file
+
+@layer base {
+  html {
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+
+    @include mat.theme(
+      (
+        color: (
+          theme-type: light,
+          primary: mat.$azure-palette,
+          tertiary: mat.$blue-palette,
+        ),
+        typography: Roboto,
+        density: 0,
+      ),
+      $overrides: (
+        // Custom background and foreground colors
+        surface: var(--color-slate-50),
+        on-surface: var(--color-slate-900)
+      )
+    );
+  }
+
+  // Uncomment this out to help debug
+  // * {
+  //   outline: solid 1px red;
+  // }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+    margin: 0;
+  }
+
+  h1 {
+    font: var(--mat-sys-headline-large);
+  }
+
+  h2 {
+    font: var(--mat-sys-headline-medium);
+  }
+
+  h3 {
+    font: var(--mat-sys-headline-small);
+  }
+
+  h4 {
+    font: var(--mat-sys-title-large);
+  }
+
+  h5 {
+    font: var(--mat-sys-title-medium);
+  }
+
+  h6 {
+    font: var(--mat-sys-title-small);
+  }
+
+  p {
+    font: var(--mat-sys-body-large);
+  }
+
+  // ----------------------------------
+  // Make Angular Material and Tailwind play nice
+
+  .mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field
+    .mdc-notched-outline__notch {
+    border-right-style: hidden;
+  }
+
+  [type="text"],
+  [type="email"],
+  [type="url"],
+  [type="password"],
+  [type="number"],
+  [type="date"],
+  [type="datetime-local"],
+  [type="month"],
+  [type="search"],
+  [type="tel"],
+  [type="time"],
+  [type="week"],
+  [multiple],
+  textarea,
+  select {
+    padding: 0;
+    border: none;
+  }
+
+  // ----------------------------------
+}
