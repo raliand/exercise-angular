@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'; // Import inject
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLinkWithHref, RouterOutlet } from '@angular/router';
+import { AuthStore } from '@app-shared/auth/data/auth.store'; // Import AuthStore
 import { AuthStatusComponent } from './ui/auth-status.component';
 
 @Component({
@@ -19,9 +20,20 @@ import { AuthStatusComponent } from './ui/auth-status.component';
             </li>
           </ul>
 
-          <ul class="flex gap-x-4">
+          <ul class="flex items-center gap-x-4">
+            @if (isAuthenticated()) {
+              <li>
+                <a mat-button [routerLink]="['/profile']">Profile</a>
+              </li>
+              <li>
+                <a mat-button [routerLink]="['/routine']">Routine</a>
+              </li>
+              <li>
+                <a mat-button [routerLink]="['/history']">History</a>
+              </li>
+            }
             @defer {
-              <li class="float-right">
+              <li>
                 <app-auth-status />
               </li>
             }
@@ -37,4 +49,7 @@ import { AuthStatusComponent } from './ui/auth-status.component';
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WebsiteShellComponent {}
+export class WebsiteShellComponent {
+  readonly #authStore = inject(AuthStore); // Inject AuthStore
+  readonly isAuthenticated = this.#authStore.isAuthenticated; // Get isAuthenticated signal
+}

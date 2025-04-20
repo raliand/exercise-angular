@@ -10,3 +10,4 @@ lerna-debug.log*
 
 .DS_Store
 node_modules/
+firebase/firebase-export-1744963693881myRjx5/firestore_export/firestore_export.overall_export_metadata

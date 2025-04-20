@@ -1,14 +1,20 @@
-import { ChangeDetectionStrategy, Component, OnInit, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
-import { LoginFormComponent } from '../ui/login-form.component';
 import { LoginFlowStore } from './login-flow.store';
 
 @Component({
   selector: 'app-login-flow',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatSnackBarModule, LoginFormComponent],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
+    MatProgressBarModule,
+  ],
   providers: [LoginFlowStore],
   template: `
     <div class="flex justify-center">
@@ -24,7 +30,19 @@ import { LoginFlowStore } from './login-flow.store';
         </div>
       }
 
-      <app-login-form [processing]="status() === 'processing'" (submitted)="onSubmit($event)" />
+      <button
+        mat-flat-button
+        color="primary"
+        class="w-full"
+        (click)="loginWithGoogle()"
+        [disabled]="status() === 'processing'"
+      >
+        @if (status() === 'processing') {
+          <mat-progress-bar mode="indeterminate" />
+        } @else {
+          Login with Google
+        }
+      </button>
     </div>
   `,
   styles: ``,
@@ -37,27 +55,11 @@ export class LoginFlowComponent implements OnInit {
   readonly status = this.#store.status;
   readonly error = this.#store.error;
 
-  constructor() {
-    effect(() => {
-      if (this.#store.status() === 'email_sent') {
-        this.informUserOfEmailSent();
-      }
-    });
-  }
+  constructor() { }
 
-  ngOnInit(): void {
-    this.#store.handleLoginLinkIfAvailable();
-  }
+  ngOnInit(): void { }
 
-  onSubmit(email: string) {
-    this.#store.triggerLoginLink({ email });
-  }
-
-  private informUserOfEmailSent(): void {
-    this.#snackBar.open('Email with login link sent', undefined, {
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      duration: 5000,
-    });
+  loginWithGoogle() {
+    this.#store.loginWithGoogle();
   }
 }

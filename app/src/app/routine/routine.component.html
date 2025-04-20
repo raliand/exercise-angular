@@ -1,0 +1,70 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Generate Your Exercise Routine</mat-card-title>
+    @if (!canGenerate()) {
+      <mat-card-subtitle
+        >Please <a routerLink="/profile">complete your profile</a> first.</mat-card-subtitle
+      >
+    }
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Generating your personalized routine...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-message">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
+    } @else {
+      @if (generatedRoutine(); as routine) {
+        <div class="routine-display">
+          <h2>Your Generated Routine</h2>
+
+          @if (routine.notes) {
+            <p class="notes"><strong>Notes:</strong> {{ routine.notes }}</p>
+          }
+
+          <mat-list role="list">
+            @for (exercise of routine.routine; track exercise.exerciseName; let i = $index) {
+              <mat-list-item role="listitem">
+                <mat-checkbox
+                  [checked]="exercise.completed"
+                  (change)="toggleExerciseCompletion(i, $event.checked)"
+                  class="exercise-checkbox"
+                  >Completed</mat-checkbox
+                >
+                <mat-icon matListItemIcon>fitness_center</mat-icon>
+                <div matListItemTitle>{{ exercise.exerciseName }}</div>
+                <div matListItemLine>Sets: {{ exercise.sets }}</div>
+                <div matListItemLine>Reps: {{ exercise.reps }}</div>
+                <div matListItemLine>Rest: {{ exercise.restTime }}</div>
+              </mat-list-item>
+              @if (i < routine.routine.length - 1) {
+                <mat-divider></mat-divider>
+              }
+            }
+          </mat-list>
+        </div>
+      } @else {
+        <p>Click the button below to generate a new exercise routine based on your profile.</p>
+      }
+    }
+  </mat-card-content>
+  @if (!generatedRoutine(); as routine) {
+    <mat-card-actions align="end">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="generateRoutine()"
+        [disabled]="isLoading() || !canGenerate()"
+      >
+        <mat-icon>autorenew</mat-icon>
+        {{ generatedRoutine() ? "Generate New Routine" : "Generate Routine" }}
+      </button>
+    </mat-card-actions>
+  }
+</mat-card>

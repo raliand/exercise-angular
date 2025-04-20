@@ -6,7 +6,7 @@ import { FIREBASE_AUTH } from './auth';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function firestoreFactory(_: Auth) {
-  const firestore = getFirestore();
+  const firestore = getFirestore('exercise-angular');
   if (environment.useEmulators) {
     connectFirestoreEmulator(firestore, 'localhost', 8080);
   }

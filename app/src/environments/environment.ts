@@ -1,13 +1,13 @@
 export const environment = {
-  useEmulators: true,
+  useEmulators: false,
   logLevel: 5, // See https://unjs.io/packages/consola#log-level
   firebaseConfig: {
-    apiKey: 'this-is-a-demo-project',
-    authDomain: 'this-is-a-demo-project',
-    databaseURL: 'https://demo-local.europe-west1.firebasedatabase.app',
-    projectId: 'demo-local',
-    storageBucket: 'this-is-a-demo-project',
-    messagingSenderId: 'this-is-a-demo-project',
-    appId: 'this-is-a-demo-project',
+    apiKey: "AIzaSyB2vAufPnTmS2q343bOcUX9kNo-D2nOyUU",
+    authDomain: "local-is-better.firebaseapp.com",
+    projectId: "local-is-better",
+    storageBucket: "local-is-better.firebasestorage.app",
+    messagingSenderId: "265863007605",
+    appId: "1:265863007605:web:24ace7577b15ff378e973c",
+    measurementId: "G-G5MYBYEB2S"
   },
 };

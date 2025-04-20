@@ -13,10 +13,8 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { exhaustMap, filter, from, map, pipe, take, tap } from 'rxjs';
+import { exhaustMap, from, pipe, tap, throwError } from 'rxjs';
 import { LoginService } from '../data/login.service';
-
-const localStorageKeyForEmail = 'emailForLogin';
 
 type IdleState = {
   status: 'idle';
@@ -25,11 +23,6 @@ type IdleState = {
 
 type ProcessingState = {
   status: 'processing';
-  error: null;
-};
-
-type EmailSentState = {
-  status: 'email_sent';
   error: null;
 };
 
@@ -43,7 +36,11 @@ type ErrorState = {
   error: string;
 };
 
-type LoginFlowState = IdleState | ProcessingState | EmailSentState | CompletedState | ErrorState;
+type LoginFlowState =
+  | IdleState
+  | ProcessingState
+  | CompletedState
+  | ErrorState;
 
 const initialState: LoginFlowState = {
   status: 'idle',
@@ -76,11 +73,6 @@ export const LoginFlowStore = signalStore(
       patchState(store, newState);
     };
 
-    const setEmailSent = () => {
-      const newState: EmailSentState = { status: 'email_sent', error: null };
-      patchState(store, newState);
-    };
-
     const setCompleted = () => {
       const newState: CompletedState = { status: 'completed', error: null };
       patchState(store, newState);
@@ -94,60 +86,28 @@ export const LoginFlowStore = signalStore(
     // ---
 
     return {
-      triggerLoginLink: rxMethod<{ email: string }>(
+      loginWithGoogle: rxMethod<void>(
         pipe(
-          tap((params) => logger.log(`triggerLoginLink - email = ${params.email}`)),
+          tap(() => logger.log('loginWithGoogle')),
           tap(() => setProcessing()),
-          exhaustMap(({ email }) => {
-            return from(loginService.triggerLoginLink(email, document.location.href)).pipe(
-              take(1),
+          exhaustMap(() => {
+            // Wrap the promise in from() to convert it to an Observable
+            return from(loginService.loginWithGoogle()).pipe(
               tapResponse({
                 next: () => {
-                  // Save the email locally so we can use it for final step of logging in (when the user clicks the link in the email).
-                  window.localStorage.setItem(localStorageKeyForEmail, email);
-
-                  setEmailSent();
+                  // Completion is handled by the effect below
                 },
-                error: (error: string) => {
-                  // TODO: here we catch _any_ error, including Angular errors. Maybe we should filter out and map these to user specific error messages (like we do for the auth error messages in login service?)
-                  setError(error);
+                error: (error: Error) => {
+                  setError(error.message);
+                  // Return an observable that emits an error to prevent the stream from completing silently
+                  return throwError(() => error);
                 },
               }),
             );
           }),
         ),
       ),
-      // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-      handleLoginLinkIfAvailable: rxMethod<void>(
-        pipe(
-          tap(() => logger.log('handleLoginLinkIfAvailable')),
-          map(() => document.location.href),
-          filter((url) => loginService.isLoginLink(url)),
-          tap(() => setProcessing()),
-          exhaustMap((url) => {
-            let email = window.localStorage.getItem(localStorageKeyForEmail);
 
-            while (!email) {
-              email = window.prompt('Please provide your email for confirmation');
-            }
-
-            return from(loginService.handleLoginLink(url, email)).pipe(
-              take(1),
-              tapResponse({
-                next: () => {
-                  window.localStorage.removeItem(localStorageKeyForEmail);
-
-                  // Note: completion of login is handled by the `effect` below, so we don't need to do anything else here.
-                },
-                error: (error: string) => {
-                  // TODO: here we catch _any_ error, including Angular errors. Maybe we should filter out and map these to user specific error messages (like we do for the auth error messages in login service?)
-                  setError(error);
-                },
-              }),
-            );
-          }),
-        ),
-      ),
       completeLogin: async () => {
         setCompleted();
 

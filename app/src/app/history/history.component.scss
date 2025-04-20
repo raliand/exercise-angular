@@ -1,0 +1,38 @@
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+// Renamed .exercise-header to .exercise-item for clarity
+.exercise-item {
+    // Add transition for smoother color change if desired
+    transition: background-color 0.3s ease;
+}
+
+.completed-exercise {
+    background-color: rgba(144, 238, 144, 0.3); // LightGreen with transparency
+}
+
+.incomplete-exercise {
+    background-color: rgba(255, 182, 193, 0.3); // LightPink with transparency
+}
+
+// Remove styles related to the old toggle button
+
+// Adjust divider if needed
+mat-divider {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+// Optional: Style the expansion panel header or content if needed
+.mat-expansion-panel-header {
+    font-weight: 500; // Make date header slightly bolder
+}
+
+// Ensure list inside panel doesn't have extra padding/margins
+mat-expansion-panel .mat-list-base {
+    padding-top: 0;
+}

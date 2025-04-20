@@ -14,7 +14,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { EMPTY, filter, finalize, pipe, shareReplay, switchMap, tap } from 'rxjs';
+import { EMPTY, filter, finalize, pipe, shareReplay, switchMap, tap } from 'rxjs'; // Import map
 import { AuthService } from './auth.service';
 
 type DisconnectedState = {
@@ -59,6 +59,8 @@ export const AuthStore = signalStore(
   withComputed((store) => {
     return {
       isAuthenticated: computed(() => Boolean(store.user())),
+      // Add computed signal for userId
+      userId: computed(() => store.user()?.id ?? null),
     };
   }),
   withMethods((store) => {
@@ -124,6 +126,8 @@ export const AuthStore = signalStore(
       shareReplay(1),
     ),
     user$: toObservable(store.user),
+    // Add userId$ derived from the computed userId signal
+    userId$: toObservable(store.userId).pipe(shareReplay(1)), // Ensure it replays the last value
   })),
   withHooks({
     onInit(store) {

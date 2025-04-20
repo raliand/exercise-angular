@@ -1,0 +1,68 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Your Past Routines</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (isLoading$ | async) {
+      <div class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+      </div>
+    } @else {
+      @if (pastRoutines$ | async; as pastRoutines) {
+        @if (pastRoutines.length > 0) {
+          <!-- Use mat-accordion for better expansion panel behavior -->
+          <mat-accordion multi="true">
+            <!-- Allow multiple panels open -->
+            @for (item of pastRoutines; track item.date) {
+              <mat-expansion-panel
+                [expanded]="isDateExpanded(item.date)"
+                (opened)="dateExpandedStates[item.date] = true"
+                (closed)="dateExpandedStates[item.date] = false"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    {{ item.date | date: "fullDate" }}
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+
+                <!-- Content of the expansion panel: the list of exercises -->
+                <mat-list role="list">
+                  @for (
+                    exercise of item.routine.routine;
+                    track exercise.exerciseName;
+                    let i = $index
+                  ) {
+                    <mat-list-item
+                      role="listitem"
+                      [ngClass]="{
+                        'completed-exercise': exercise.completed,
+                        'incomplete-exercise': !exercise.completed,
+                      }"
+                      class="exercise-item"
+                    >
+                      <mat-icon matListItemIcon>fitness_center</mat-icon>
+                      <div matListItemTitle>{{ exercise.exerciseName }}</div>
+                      <!-- Display details directly, no longer collapsible per exercise -->
+                      <div matListItemLine>Sets: {{ exercise.sets }}</div>
+                      <div matListItemLine>Reps: {{ exercise.reps }}</div>
+                      <div matListItemLine>Rest: {{ exercise.restTime }}</div>
+                    </mat-list-item>
+                    @if (i < item.routine.routine.length - 1) {
+                      <mat-divider></mat-divider>
+                      <!-- Divider between exercises -->
+                    }
+                  }
+                </mat-list>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        } @else {
+          <p>You haven't saved any routines yet.</p>
+        }
+      } @else {
+        <p>Could not load routine history.</p>
+      }
+    }
+  </mat-card-content>
+</mat-card>

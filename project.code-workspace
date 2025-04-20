@@ -1,17 +1,20 @@
 {
   "folders": [
     {
+      "name": ".github",
       "path": ".github"
     },
     {
+      "name": "app",
       "path": "app"
     },
     {
+      "name": "firebase",
       "path": "firebase"
     }
   ],
   "settings": {
-    "window.title": "FullStacksDev Angular and Firebase base template",
+    "window.title": "Exercise generator",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "explicit",
       "source.fixAll": "explicit",
