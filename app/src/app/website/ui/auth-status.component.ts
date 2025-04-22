@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '@app-shared/auth/data/auth.store';
 import { LogoutService } from '@app-shared/auth/data/logout.service';
 
@@ -20,10 +20,12 @@ import { LogoutService } from '@app-shared/auth/data/logout.service';
 export class AuthStatusComponent {
   readonly #authStore = inject(AuthStore);
   readonly #logoutService = inject(LogoutService);
-
+  readonly router = inject(Router);
   readonly isAuthenticated = this.#authStore.isAuthenticated;
 
   async logOut(): Promise<void> {
     await this.#logoutService.logOut();
+    // redirect to login page
+    this.router.navigate(['/login']);
   }
 }

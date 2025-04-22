@@ -9,8 +9,14 @@ import { MatListModule } from '@angular/material/list'; // Import Material List
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Import Spinner
 import { ExerciseRoutine } from '@common';
 // Import BehaviorSubject, finalize
-import { BehaviorSubject, Observable, finalize } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+import { createLogger } from '@app-shared/logger';
+import { BehaviorSubject, Observable, finalize, take } from 'rxjs';
+import { ProfileService } from '../profile/data/profile.service';
 import { RoutinePersistenceService } from '../services/routine-persistence.service';
+
+const logger = createLogger('HistoryComponent');
 
 @Component({
     selector: 'app-history',
@@ -30,6 +36,11 @@ import { RoutinePersistenceService } from '../services/routine-persistence.servi
 })
 export class HistoryComponent implements OnInit {
     readonly #routinePersistenceService = inject(RoutinePersistenceService);
+    private readonly profileService = inject(ProfileService);
+    private readonly router = inject(Router);
+
+    // Keep toSignal for potential future template use or consistency
+    readonly userProfile = toSignal(this.profileService.userProfile$);
 
     pastRoutines$!: Observable<{ date: string; routine: ExerciseRoutine }[]>;
     isLoading$ = new BehaviorSubject<boolean>(true);
@@ -38,6 +49,21 @@ export class HistoryComponent implements OnInit {
     dateExpandedStates: { [key: string]: boolean } = {};
 
     ngOnInit(): void {
+        // Subscribe to the profile observable to check its initial state
+        this.profileService.userProfile$
+            .pipe(
+                take(1) // Take the first emitted value (null or profile)
+            )
+            .subscribe(profile => {
+                if (!profile) {
+                    logger.warn('No user profile found on init, redirecting to profile page.');
+                    this.router.navigate(['/profile']); // Redirect to profile page
+                } else {
+                    // Proceed with loading history data if needed
+                    logger.log('User profile found, proceeding with history component initialization.');
+                    // Add history loading logic here if necessary
+                }
+            });
         this.pastRoutines$ = this.#routinePersistenceService.loadAllRoutines().pipe(
             finalize(() => this.isLoading$.next(false))
         );

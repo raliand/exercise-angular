@@ -6,7 +6,7 @@ import { LoginFlowComponent } from './login-flow.component';
   selector: 'app-login-page',
   template: `
     @defer {
-      <section class="flex justify-center py-6">
+      <section class="flex justify-center w-full h-screen bg-gray-100">
         <app-login-flow />
       </section>
     } @loading (after 80ms) {
@@ -17,4 +17,4 @@ import { LoginFlowComponent } from './login-flow.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatProgressBarModule, LoginFlowComponent],
 })
-export class LoginPageComponent {}
+export class LoginPageComponent { }

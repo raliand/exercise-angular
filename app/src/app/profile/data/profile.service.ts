@@ -51,6 +51,6 @@ export class ProfileService {
 
     private getUserProfileDocRef(userId: string): DocumentReference<UserProfile> {
         // Type assertion needed because firestore types don't carry over well with generic converters
-        return doc(this.#firestore, 'userProfiles', userId) as DocumentReference<UserProfile>;
+        return doc(this.#firestore, 'users', userId) as DocumentReference<UserProfile>;
     }
 }

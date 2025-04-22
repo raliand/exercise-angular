@@ -3,9 +3,12 @@ import { z } from 'zod';
 export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced'; // Keep or remove based on overall usage
 export type ExerciseGoal = 'weight_loss' | 'muscle_gain' | 'general_fitness' | 'strength_training' | 'endurance';
 // Define ActivityLevel based on GenerateExerciseRoutineInputSchema
-export type ActivityLevel = 'sedentary' | 'lightlyActive' | 'moderatelyActive' | 'veryActive' | 'extraActive';
+export type ActivityLevel = 'Sedentary' | 'Lightly Active' | 'Moderately Active' | 'Very Active' | 'Extra Active';
 // Define Gender based on GenerateExerciseRoutineInputSchema
 export type Gender = 'male' | 'female' | 'other';
+
+// Define possible age-related conditions
+export type AgeRelatedCondition = 'menopause' | 'pregnancy' | 'postpartum'; // Add more as needed
 
 export type UserProfile = Readonly<{
   dob: string; // ISO 8601 date string e.g., "YYYY-MM-DD" (Used to calculate age)
@@ -15,6 +18,7 @@ export type UserProfile = Readonly<{
   exerciseGoal: ExerciseGoal; // Corresponds to fitnessGoal in the input schema
   gender: Gender; // Added
   activityLevel: ActivityLevel; // Added
+  ageRelatedConditions?: AgeRelatedCondition[]; // Optional array for conditions
 }>;
 
 // Define Exercise based on ExerciseSchema
@@ -49,8 +53,9 @@ export const GenerateExerciseRoutineInputSchema = z.object({ // Add export
   availableTime: z.number().describe('The amount of time the user has available for the exercise routine in minutes.'),
   age: z.number().describe('The age of the user in years.'),
   gender: z.enum(['male', 'female', 'other']).describe('The gender of the user.'),
-  activityLevel: z.enum(['sedentary', 'lightlyActive', 'moderatelyActive', 'veryActive', 'extraActive']).describe('The activity level of the user.'),
+  activityLevel: z.enum(['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Extra Active']).describe('The activity level of the user.'),
   userId: z.string().describe('The ID of the user.'), // Add userId to input
+  // Consider adding ageRelatedConditions here if the AI needs it for generation
 });
 export type GenerateExerciseRoutineInput = z.infer<typeof GenerateExerciseRoutineInputSchema>;
 

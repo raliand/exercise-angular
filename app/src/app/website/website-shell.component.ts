@@ -1,55 +1,80 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'; // Import inject
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core'; // Import inject, OnInit, signal
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon'; // Import MatIconModule
+import { MatListModule } from '@angular/material/list'; // Import MatListModule
+import { MatSidenavModule } from '@angular/material/sidenav'; // Import MatSidenavModule
+import { MatToolbarModule } from '@angular/material/toolbar'; // Import MatToolbarModule
 import { RouterLinkWithHref, RouterOutlet } from '@angular/router';
 import { AuthStore } from '@app-shared/auth/data/auth.store'; // Import AuthStore
+import { UnsplashService } from '../services/unsplash.service'; // Import UnsplashService
 import { AuthStatusComponent } from './ui/auth-status.component';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLinkWithHref, MatButtonModule, AuthStatusComponent],
+  imports: [
+    RouterOutlet,
+    RouterLinkWithHref,
+    MatButtonModule,
+    AuthStatusComponent,
+    MatSidenavModule, // Add MatSidenavModule
+    MatListModule, // Add MatListModule
+    MatIconModule, // Add MatIconModule
+    MatToolbarModule, // Add MatToolbarModule
+  ],
   template: `
-    <div class="container mx-auto px-4">
-      <header>
-        <nav class="flex justify-between border-b py-2">
-          <ul class="flex gap-x-4">
-            <li>
-              <a mat-button [routerLink]="['/']">Home</a>
-            </li>
-            <li>
-              <a mat-button [routerLink]="['/about']">About</a>
-            </li>
-          </ul>
+    <mat-sidenav-container class="h-screen bg-cover bg-center bg-no-repeat" [style.background-image]="'url(' + (backgroundImageUrl() ?? defaultImageUrl) + ')'">
+      <mat-sidenav #sidenav mode="over" opened="false" class="w-64 border-r bg-white bg-opacity-90"> <!-- Added background for readability -->
+        <mat-nav-list>
+          @if (isAuthenticated()) {
+            <a mat-list-item [routerLink]="['/routine']" (click)="sidenav.close()">Routine</a>
+            <a mat-list-item [routerLink]="['/history']" (click)="sidenav.close()">History</a>
+            <a mat-list-item [routerLink]="['/profile']" (click)="sidenav.close()">Profile</a>
+          }
+        </mat-nav-list>
+      </mat-sidenav>
 
-          <ul class="flex items-center gap-x-4">
-            @if (isAuthenticated()) {
-              <li>
-                <a mat-button [routerLink]="['/profile']">Profile</a>
-              </li>
-              <li>
-                <a mat-button [routerLink]="['/routine']">Routine</a>
-              </li>
-              <li>
-                <a mat-button [routerLink]="['/history']">History</a>
-              </li>
-            }
-            @defer {
-              <li>
-                <app-auth-status />
-              </li>
-            }
-          </ul>
-        </nav>
-      </header>
+      <mat-sidenav-content class="flex flex-col"> <!-- Added flex flex-col -->
+        <mat-toolbar color="primary">
+          <button mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <span class="flex-auto"></span>
+          @defer {
+            <app-auth-status />
+          }
+        </mat-toolbar>
 
-      <main class="px-4 py-3">
-        <router-outlet />
-      </main>
-    </div>
+        <main class="p-4 flex-grow overflow-auto"> <!-- Added flex-grow and overflow-auto -->
+          <router-outlet />
+        </main>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   `,
-  styles: ``,
+  styles: `
+    mat-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure toolbar stays on top */
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WebsiteShellComponent {
+export class WebsiteShellComponent implements OnInit { // Implement OnInit
   readonly #authStore = inject(AuthStore); // Inject AuthStore
+  readonly #unsplashService = inject(UnsplashService); // Inject UnsplashService
+
   readonly isAuthenticated = this.#authStore.isAuthenticated; // Get isAuthenticated signal
+  readonly backgroundImageUrl = signal<string | undefined>(undefined);
+  readonly defaultImageUrl = 'https://source.unsplash.com/random/1920x1080/?landscape,nature'; // Fallback
+
+  ngOnInit(): void {
+    this.#unsplashService.getRandomPhotoUrl('fitness,gym').subscribe(url => {
+      if (url) {
+        this.backgroundImageUrl.set(url);
+      } else {
+        console.warn('Could not fetch Unsplash image for shell, using default.');
+        this.backgroundImageUrl.set(this.defaultImageUrl);
+      }
+    });
+  }
 }

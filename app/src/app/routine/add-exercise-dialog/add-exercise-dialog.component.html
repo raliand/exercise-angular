@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Add New Exercise</h2>
+<mat-dialog-content [formGroup]="exerciseForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Exercise Name</mat-label>
+    <input matInput formControlName="exerciseName" required />
+    @if (exerciseForm.get("exerciseName")?.hasError("required")) {
+      <mat-error>Exercise name is required</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Sets</mat-label>
+    <input matInput formControlName="sets" required />
+    @if (exerciseForm.get("sets")?.hasError("required")) {
+      <mat-error>Sets are required</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Reps</mat-label>
+    <input matInput formControlName="reps" required />
+    @if (exerciseForm.get("reps")?.hasError("required")) {
+      <mat-error>Reps are required</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Rest Time (e.g., 60s)</mat-label>
+    <input matInput formControlName="restTime" required />
+    @if (exerciseForm.get("restTime")?.hasError("required")) {
+      <mat-error>Rest time is required</mat-error>
+    }
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="!exerciseForm.valid">
+    Save
+  </button>
+</mat-dialog-actions>

@@ -38,7 +38,8 @@
     "files.trimTrailingWhitespace": true,
     "typescript.updateImportsOnFileMove.enabled": "always",
     "workbench.editor.labelFormat": "default",
-    "typescript.tsdk": "app/node_modules/typescript/lib"
+    "typescript.tsdk": "app/node_modules/typescript/lib",
+    "powershell.cwd": "app"
   },
   "extensions": {
     "recommendations": [

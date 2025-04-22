@@ -92,7 +92,7 @@ const generateExerciseRoutinePrompt = ai.definePrompt({
             })),
             age: z.number(),
             gender: z.enum(['male', 'female', 'other']),
-            activityLevel: z.enum(['sedentary', 'lightlyActive', 'moderatelyActive', 'veryActive', 'extraActive']),
+            activityLevel: z.enum(['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Extra Active']),
         }),
     },
     output: {

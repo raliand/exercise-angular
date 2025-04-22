@@ -1,5 +1,6 @@
 export const environment = {
   useEmulators: false,
+  unsplashAccessKey: "L3acRGH2imM1GSZhsJ1RZ1xVKeZRsh6xDtFftIqG8U4",
   logLevel: 0, // See https://unjs.io/packages/consola#log-level
   firebaseConfig: {
     apiKey: "AIzaSyB2vAufPnTmS2q343bOcUX9kNo-D2nOyUU",

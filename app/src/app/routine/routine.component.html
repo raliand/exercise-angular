@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card class="opacity-80">
   <mat-card-header>
     <mat-card-title>Generate Your Exercise Routine</mat-card-title>
     @if (!canGenerate()) {
@@ -24,10 +24,6 @@
         <div class="routine-display">
           <h2>Your Generated Routine</h2>
 
-          @if (routine.notes) {
-            <p class="notes"><strong>Notes:</strong> {{ routine.notes }}</p>
-          }
-
           <mat-list role="list">
             @for (exercise of routine.routine; track exercise.exerciseName; let i = $index) {
               <mat-list-item role="listitem">
@@ -42,20 +38,43 @@
                 <div matListItemLine>Sets: {{ exercise.sets }}</div>
                 <div matListItemLine>Reps: {{ exercise.reps }}</div>
                 <div matListItemLine>Rest: {{ exercise.restTime }}</div>
+                <!-- Add remove button -->
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="removeExercise(i)"
+                  aria-label="Remove exercise"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-list-item>
               @if (i < routine.routine.length - 1) {
                 <mat-divider></mat-divider>
               }
             }
           </mat-list>
+
+          @if (routine.notes) {
+            <p class="notes"><strong>Notes:</strong> {{ routine.notes }}</p>
+          }
         </div>
       } @else {
         <p>Click the button below to generate a new exercise routine based on your profile.</p>
       }
     }
   </mat-card-content>
-  @if (!generatedRoutine(); as routine) {
-    <mat-card-actions align="end">
+
+  <mat-card-actions align="end">
+    <!-- Button to add exercise, shown only when a routine exists -->
+    @if (generatedRoutine()) {
+      <button mat-stroked-button color="accent" (click)="openAddExerciseDialog()">
+        <mat-icon>add</mat-icon>
+        Add Exercise
+      </button>
+    }
+
+    <!-- Existing Generate Button -->
+    @if (!generatedRoutine()) {
       <button
         mat-raised-button
         color="primary"
@@ -65,6 +84,6 @@
         <mat-icon>autorenew</mat-icon>
         {{ generatedRoutine() ? "Generate New Routine" : "Generate Routine" }}
       </button>
-    </mat-card-actions>
-  }
+    }
+  </mat-card-actions>
 </mat-card>

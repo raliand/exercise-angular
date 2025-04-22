@@ -4,18 +4,20 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox'; // Import MatCheckboxModule
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // Import MatDialog and MatDialogModule
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router'; // Import Router
 import { AuthStore } from '@app-shared/auth/data/auth.store';
 import { createLogger } from '@app-shared/logger';
-import { ExerciseRoutine, GenerateExerciseRoutineInput } from '@common';
-import { take } from 'rxjs'; // Import take operator
+import { Exercise, ExerciseRoutine, GenerateExerciseRoutineInput } from '@common'; // Import Exercise type
+import { filter, take } from 'rxjs'; // Import filter and take operators
 import { ProfileService } from '../profile/data/profile.service';
 import { ExerciseRoutineService } from '../services/exercise-routine.service';
 import { RoutinePersistenceService } from '../services/routine-persistence.service';
+import { AddExerciseDialogComponent } from './add-exercise-dialog/add-exercise-dialog.component'; // Import the dialog component
 
 const logger = createLogger('RoutineComponent');
 
@@ -58,6 +60,8 @@ function calculateAge(dobString: string): number {
         MatIconModule,
         MatDividerModule,
         MatCheckboxModule, // Add MatCheckboxModule here
+        MatDialogModule, // Add MatDialogModule
+        // AddExerciseDialogComponent is standalone, no need to import here unless used directly in template
     ],
     templateUrl: './routine.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,6 +71,8 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
     private readonly routineGenerationService = inject(ExerciseRoutineService); // Use renamed service
     private readonly routinePersistenceService = inject(RoutinePersistenceService); // Inject the persistence service
     private readonly authStore = inject(AuthStore);
+    private readonly router = inject(Router); // Inject Router
+    private readonly dialog = inject(MatDialog); // Inject MatDialog
 
     readonly userProfile = toSignal(this.profileService.userProfile$);
     readonly userId = toSignal(this.authStore.userId$);
@@ -79,7 +85,21 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
     readonly todayDateString = getTodayDateString(); // Store today's date string
 
     ngOnInit(): void {
-        this.loadRoutineForToday(); // Calls the loading method on initialization
+        // Subscribe to the profile observable to check its initial state
+        this.profileService.userProfile$
+            .pipe(
+                // filter(profile => profile !== undefined), // Optional: if initial undefined is an issue
+                take(1) // Take the first emitted value (null or profile)
+            )
+            .subscribe(profile => {
+                if (!profile) {
+                    logger.warn('No user profile found on init, redirecting to profile page.');
+                    this.router.navigate(['/profile']); // Redirect to profile page
+                } else {
+                    logger.log('User profile found, loading routine for today.');
+                    this.loadRoutineForToday(); // Load data only if profile exists
+                }
+            });
     }
 
     loadRoutineForToday(): void {
@@ -187,6 +207,77 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
             this.error.set('Failed to save exercise completion status.');
             // Optionally revert the UI change if saving fails
             // this.generatedRoutine.set(currentRoutine);
+        }
+    }
+
+    async removeExercise(exerciseIndex: number) {
+        const currentRoutine = this.generatedRoutine();
+        if (!currentRoutine) return;
+
+        // Create a new array excluding the exercise at the given index
+        const updatedExercises = currentRoutine.routine.filter((_, index) => index !== exerciseIndex);
+
+        // Create a new routine object with the updated exercises
+        const updatedRoutine: ExerciseRoutine = {
+            ...currentRoutine,
+            routine: updatedExercises,
+        };
+
+        // Update the signal
+        this.generatedRoutine.set(updatedRoutine);
+
+        // Persist the change
+        try {
+            await this.routinePersistenceService.saveRoutineForDate(updatedRoutine, this.todayDateString);
+            logger.log(`Exercise ${exerciseIndex} removed and routine saved.`);
+        } catch (err) {
+            logger.error('Error saving routine after removing exercise:', err);
+            this.error.set('Failed to save routine after removing exercise.');
+            // Optionally revert the UI change if saving fails
+            // this.generatedRoutine.set(currentRoutine);
+        }
+    }
+
+    openAddExerciseDialog(): void {
+        const dialogRef = this.dialog.open(AddExerciseDialogComponent, {
+            width: '400px', // Adjust width as needed
+        });
+
+        dialogRef.afterClosed().pipe(filter(result => !!result)).subscribe(async (newExerciseData: Omit<Exercise, 'completed'>) => {
+            logger.log('Dialog closed with new exercise:', newExerciseData);
+            await this.addExercise(newExerciseData);
+        });
+    }
+
+    private async addExercise(newExerciseData: Omit<Exercise, 'completed'>) {
+        const currentRoutine = this.generatedRoutine();
+        if (!currentRoutine) return; // Should not happen if button is only shown when routine exists
+
+        const newExercise: Exercise = {
+            ...newExerciseData,
+            completed: false, // New exercises start as not completed
+        };
+
+        const updatedExercises = [...currentRoutine.routine, newExercise];
+
+        const updatedRoutine: ExerciseRoutine = {
+            ...currentRoutine,
+            routine: updatedExercises,
+        };
+
+        // Update the signal
+        this.generatedRoutine.set(updatedRoutine);
+
+        // Persist the change
+        try {
+            await this.routinePersistenceService.saveRoutineForDate(updatedRoutine, this.todayDateString);
+            logger.log('New exercise added and routine saved.');
+        } catch (err) {
+            logger.error('Error saving routine after adding exercise:', err);
+            this.error.set('Failed to save routine after adding exercise.');
+            // Optionally revert the UI change if saving fails
+            // const revertedExercises = currentRoutine.routine.filter(ex => ex !== newExercise);
+            // this.generatedRoutine.set({ ...currentRoutine, routine: revertedExercises });
         }
     }
 }
