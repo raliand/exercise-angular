@@ -5,18 +5,26 @@
     padding: 20px;
 }
 
-// Renamed .exercise-header to .exercise-item for clarity
 .exercise-item {
     // Add transition for smoother color change if desired
     transition: background-color 0.3s ease;
 }
 
-.completed-exercise {
-    background-color: rgba(144, 238, 144, 0.3); // LightGreen with transparency
+// Remove old classes if they exist
+// .completed-exercise { ... }
+// .incomplete-exercise { ... }
+
+// Add new classes based on completion status
+.exercise-incomplete {
+    background-color: rgba(255, 182, 193, 0.3); // LightPink with transparency
 }
 
-.incomplete-exercise {
-    background-color: rgba(255, 182, 193, 0.3); // LightPink with transparency
+.exercise-partial {
+    background-color: rgba(255, 255, 224, 0.4); // LightYellow with transparency
+}
+
+.exercise-complete {
+    background-color: rgba(144, 238, 144, 0.3); // LightGreen with transparency
 }
 
 // Remove styles related to the old toggle button

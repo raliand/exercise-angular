@@ -11,9 +11,7 @@
     } @else {
       @if (pastRoutines$ | async; as pastRoutines) {
         @if (pastRoutines.length > 0) {
-          <!-- Use mat-accordion for better expansion panel behavior -->
           <mat-accordion multi="true">
-            <!-- Allow multiple panels open -->
             @for (item of pastRoutines; track item.date) {
               <mat-expansion-panel
                 [expanded]="isDateExpanded(item.date)"
@@ -35,22 +33,18 @@
                   ) {
                     <mat-list-item
                       role="listitem"
-                      [ngClass]="{
-                        'completed-exercise': exercise.completed,
-                        'incomplete-exercise': !exercise.completed,
-                      }"
+                      [ngClass]="getCompletionColorClass(exercise)"
                       class="exercise-item"
                     >
                       <mat-icon matListItemIcon>fitness_center</mat-icon>
                       <div matListItemTitle>{{ exercise.exerciseName }}</div>
-                      <!-- Display details directly, no longer collapsible per exercise -->
-                      <div matListItemLine>Sets: {{ exercise.sets }}</div>
+                      <!-- Display completion status -->
+                      <div matListItemLine>{{ getCompletionStatus(exercise) }}</div>
                       <div matListItemLine>Reps: {{ exercise.reps }}</div>
                       <div matListItemLine>Rest: {{ exercise.restTime }}</div>
                     </mat-list-item>
                     @if (i < item.routine.routine.length - 1) {
                       <mat-divider></mat-divider>
-                      <!-- Divider between exercises -->
                     }
                   }
                 </mat-list>

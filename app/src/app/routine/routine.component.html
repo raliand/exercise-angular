@@ -1,6 +1,8 @@
 <mat-card class="opacity-80">
   <mat-card-header>
-    <mat-card-title>Generate Your Exercise Routine</mat-card-title>
+    @if (!generatedRoutine(); as routine) {
+      <mat-card-title>Generate Your Exercise Routine</mat-card-title>
+    }
     @if (!canGenerate()) {
       <mat-card-subtitle
         >Please <a routerLink="/profile">complete your profile</a> first.</mat-card-subtitle
@@ -26,27 +28,42 @@
 
           <mat-list role="list">
             @for (exercise of routine.routine; track exercise.exerciseName; let i = $index) {
-              <mat-list-item role="listitem">
-                <mat-checkbox
-                  [checked]="exercise.completed"
-                  (change)="toggleExerciseCompletion(i, $event.checked)"
-                  class="exercise-checkbox"
-                  >Completed</mat-checkbox
-                >
-                <mat-icon matListItemIcon>fitness_center</mat-icon>
-                <div matListItemTitle>{{ exercise.exerciseName }}</div>
-                <div matListItemLine>Sets: {{ exercise.sets }}</div>
-                <div matListItemLine>Reps: {{ exercise.reps }}</div>
-                <div matListItemLine>Rest: {{ exercise.restTime }}</div>
-                <!-- Add remove button -->
-                <button
-                  mat-icon-button
-                  color="warn"
-                  (click)="removeExercise(i)"
-                  aria-label="Remove exercise"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+              <mat-list-item role="listitem" class="exercise-item">
+                <!-- Added class for styling -->
+                <!-- Container for icon, title, and delete button -->
+                <div matListItemTitle class="exercise-title-container">
+                  <mat-icon>fitness_center</mat-icon>
+                  <span class="exercise-name">{{ exercise.exerciseName }}</span>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removeExercise(i)"
+                    aria-label="Remove exercise"
+                    class="delete-button"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <!-- Exercise Details -->
+                <div matListItemLine class="exercise-details">
+                  <!-- Added class for styling -->
+                  <span>Sets: {{ exercise.sets }}</span>
+                  <span>Reps: {{ exercise.reps }}</span>
+                  <span>Rest: {{ exercise.restTime }}</span>
+                </div>
+                <!-- Set Checkboxes -->
+                <div matListItemLine class="set-checkboxes-container">
+                  <!-- Container for checkboxes -->
+                  <span>Completed Sets:</span>
+                  @for (setIndex of counter(exercise.sets); track setIndex) {
+                    <mat-checkbox
+                      [checked]="setIndex < (exercise.completed ?? 0)"
+                      (change)="toggleSetCompletion(i, setIndex, $event.checked)"
+                      class="set-checkbox"
+                      aria-label="Mark set {{ setIndex + 1 }} as completed"
+                    ></mat-checkbox>
+                  }
+                </div>
               </mat-list-item>
               @if (i < routine.routine.length - 1) {
                 <mat-divider></mat-divider>

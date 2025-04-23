@@ -27,7 +27,7 @@ export type Exercise = Readonly<{
   sets: number;
   reps: string;
   restTime: string;
-  completed?: boolean; // Add optional completed field
+  completed?: number; // Changed from boolean to number
 }>;
 
 // Define ExerciseRoutine based on GenerateExerciseRoutineOutputSchema
@@ -64,7 +64,7 @@ const ExerciseSchema = z.object({
   sets: z.number().describe('The number of sets for the exercise.'),
   reps: z.string().describe('The number of repetitions for each set (e.g., 8-12).'),
   restTime: z.string().describe('The rest time between sets in seconds (e.g., 60 seconds).'),
-  completed: z.boolean().optional().default(false).describe('Whether the user has completed this exercise for the routine.'), // Add completed field to schema
+  completed: z.number().optional().default(0).describe('The number of completed sets for this exercise.'), // Changed from boolean to number, default 0
 });
 
 export const GenerateExerciseRoutineOutputSchema = z.object({ // Add export

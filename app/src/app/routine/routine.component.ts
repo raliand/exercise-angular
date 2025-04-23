@@ -64,6 +64,7 @@ function calculateAge(dobString: string): number {
         // AddExerciseDialogComponent is standalone, no need to import here unless used directly in template
     ],
     templateUrl: './routine.component.html',
+    styleUrl: './routine.component.scss', // Add styleUrl
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class RoutineComponent implements OnInit { // Implement OnInit
@@ -112,7 +113,15 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
                 next: (routine) => {
                     if (routine) {
                         logger.log('Loaded routine for today:', routine);
-                        this.generatedRoutine.set(routine); // Sets the loaded routine
+                        // Ensure completed is a number, default to 0 if missing or not a number
+                        const validatedRoutine = {
+                            ...routine,
+                            routine: routine.routine.map(ex => ({
+                                ...ex,
+                                completed: typeof ex.completed === 'number' ? ex.completed : 0
+                            }))
+                        };
+                        this.generatedRoutine.set(validatedRoutine); // Sets the loaded routine
                     } else {
                         logger.log('No routine found for today.');
                         this.generatedRoutine.set(null); // Ensures it's null if not found
@@ -162,9 +171,14 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
             const result = await this.routineGenerationService.generateRoutine(input).toPromise();
             logger.log('Routine generated successfully:', result);
             if (result) {
-                this.generatedRoutine.set(result);
+                // Ensure completed is initialized to 0 for new routines
+                const initializedRoutine = {
+                    ...result,
+                    routine: result.routine.map(ex => ({ ...ex, completed: 0 }))
+                };
+                this.generatedRoutine.set(initializedRoutine);
                 // Save the newly generated routine for today
-                await this.routinePersistenceService.saveRoutineForDate(result, this.todayDateString);
+                await this.routinePersistenceService.saveRoutineForDate(initializedRoutine, this.todayDateString);
             } else {
                 this.generatedRoutine.set(null);
                 this.error.set('The generation service returned an empty result.');
@@ -177,16 +191,42 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
         }
     }
 
-    async toggleExerciseCompletion(exerciseIndex: number, completed: boolean) {
+    // Updated method to handle set completion toggle
+    async toggleSetCompletion(exerciseIndex: number, setIndex: number, isChecked: boolean) {
         const currentRoutine = this.generatedRoutine();
         if (!currentRoutine) return;
 
+        const exercise = currentRoutine.routine[exerciseIndex];
+        if (!exercise) return;
+
+        // Calculate the new completed count
+        // If checked, it means this set (setIndex + 1) is now completed.
+        // If unchecked, it means this set (setIndex + 1) is now incomplete.
+        // We assume sets are completed sequentially for simplicity in this logic.
+        // A more robust logic might be needed if sets can be marked out of order.
+        const currentCompletedCount = typeof exercise.completed === 'number' ? exercise.completed : 0;
+        let newCompletedCount = currentCompletedCount;
+
+        if (isChecked) {
+            // If checking this box, ensure all previous boxes are implicitly checked
+            // and set the count to this set's index + 1
+            newCompletedCount = setIndex + 1;
+        } else {
+            // If unchecking this box, ensure all subsequent boxes are implicitly unchecked
+            // and set the count to the previous set's index + 1 (or 0 if it's the first set)
+            newCompletedCount = setIndex;
+        }
+
+        // Ensure the count doesn't exceed the total number of sets
+        newCompletedCount = Math.max(0, Math.min(newCompletedCount, exercise.sets));
+
+
         // Create a new array with the updated exercise
-        const updatedExercises = currentRoutine.routine.map((exercise, index) => {
-            if (index === exerciseIndex) {
-                return { ...exercise, completed }; // Create a new exercise object with updated completion status
+        const updatedExercises = currentRoutine.routine.map((ex, idx) => {
+            if (idx === exerciseIndex) {
+                return { ...ex, completed: newCompletedCount }; // Update completed count
             }
-            return exercise;
+            return ex;
         });
 
         // Create a new routine object with the updated exercises
@@ -201,7 +241,7 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
         // Persist the change
         try {
             await this.routinePersistenceService.saveRoutineForDate(updatedRoutine, this.todayDateString);
-            logger.log(`Exercise ${exerciseIndex} completion status updated and saved.`);
+            logger.log(`Exercise ${exerciseIndex}, Set ${setIndex + 1} completion toggled. New count: ${newCompletedCount}. Routine saved.`);
         } catch (err) {
             logger.error('Error saving updated routine:', err);
             this.error.set('Failed to save exercise completion status.');
@@ -209,6 +249,7 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
             // this.generatedRoutine.set(currentRoutine);
         }
     }
+
 
     async removeExercise(exerciseIndex: number) {
         const currentRoutine = this.generatedRoutine();
@@ -255,7 +296,7 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
 
         const newExercise: Exercise = {
             ...newExerciseData,
-            completed: false, // New exercises start as not completed
+            completed: 0, // New exercises start with 0 completed sets
         };
 
         const updatedExercises = [...currentRoutine.routine, newExercise];
@@ -279,5 +320,10 @@ export default class RoutineComponent implements OnInit { // Implement OnInit
             // const revertedExercises = currentRoutine.routine.filter(ex => ex !== newExercise);
             // this.generatedRoutine.set({ ...currentRoutine, routine: revertedExercises });
         }
+    }
+
+    // Helper function to create an array of numbers from 0 to n-1
+    counter(n: number): number[] {
+        return Array.from({ length: n }, (_, i) => i);
     }
 }

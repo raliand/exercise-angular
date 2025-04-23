@@ -7,7 +7,7 @@ import { MatExpansionModule } from '@angular/material/expansion'; // Import Expa
 import { MatIconModule } from '@angular/material/icon'; // Import Material Icon
 import { MatListModule } from '@angular/material/list'; // Import Material List
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Import Spinner
-import { ExerciseRoutine } from '@common';
+import { Exercise, ExerciseRoutine } from '@common'; // Import Exercise type
 // Import BehaviorSubject, finalize
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -42,8 +42,8 @@ export class HistoryComponent implements OnInit {
     // Keep toSignal for potential future template use or consistency
     readonly userProfile = toSignal(this.profileService.userProfile$);
 
-    pastRoutines$!: Observable<{ date: string; routine: ExerciseRoutine }[]>;
-    isLoading$ = new BehaviorSubject<boolean>(true);
+    pastRoutines$!: Observable<{ date: string; routine: ExerciseRoutine }[]>; // Observable for past routines
+    isLoading$ = new BehaviorSubject<boolean>(true); // Loading indicator
 
     // Track expanded state for each date
     dateExpandedStates: { [key: string]: boolean } = {};
@@ -78,5 +78,23 @@ export class HistoryComponent implements OnInit {
     // Method to check if a date panel is expanded
     isDateExpanded(date: string): boolean {
         return !!this.dateExpandedStates[date];
+    }
+
+    // Method to get completion status string
+    getCompletionStatus(exercise: Exercise): string {
+        const completedSets = exercise.completed ?? 0;
+        return `${completedSets} out of ${exercise.sets}`;
+    }
+
+    // Method to get CSS class based on completion
+    getCompletionColorClass(exercise: Exercise): string {
+        const completedSets = exercise.completed ?? 0;
+        if (completedSets === 0) {
+            return 'exercise-incomplete';
+        } else if (completedSets < exercise.sets) {
+            return 'exercise-partial';
+        } else {
+            return 'exercise-complete';
+        }
     }
 }
